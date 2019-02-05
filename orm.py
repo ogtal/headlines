@@ -50,6 +50,27 @@ at_author_inferred_tab = Table('author_inferred_tag', Base.metadata,
     Column('inferred_tag_id', Integer, ForeignKey('inferred_tag.id'))
     )
 
+at_source_tag = Table('source_tag', Base.metadata,
+    Column('source_id', Integer, ForeignKey('source.id')),
+    Column('tag_id', Integer, ForeignKey('tag.id'))
+    )
+
+at_source_inferred_tag = Table('source_inferred_tag', Base.metadata,
+    Column('source_id', Integer, ForeignKey('source.id')),
+    Column('inferred_tag_id', Integer, ForeignKey('inferred_tag.id'))
+    )
+
+at_media_source = Table('media_source', Base.metadata,
+    Column('media_id', Integer, ForeignKey('media.id')),
+    Column('source_id', Integer, ForeignKey('source.id'))
+    )
+
+at_article_source = Table('article_source', Base.metadata,
+    Column('article_id', Integer, ForeignKey('article.id')),
+    Column('source_id', Integer, ForeignKey('source.id'))
+    )
+
+
 
 
 class Media(Base):
@@ -61,6 +82,9 @@ class Media(Base):
                 secondary = at_media_author,
                 back_populates='media')
     articles = relationship('Article')
+    sources = relationship('source', 
+                secondary = at_media_source,
+                back_populates='media')
 
 class Article(Base):
     __tablename__ = 'article'
@@ -76,6 +100,7 @@ class Article(Base):
     has_graphic = Column(BOOLEAN, nullable=False, comment='If true: article has graphics')
     has_tag = Column(BOOLEAN, nullable=False, comment='If true: article has tags')
     has_inferred_tag = Column(BOOLEAN, nullable=False, comment='If true: article has inferred tags')
+    has_sources = Column(BOOLEAN, nullable=False, comment='If true: article has sources')
     media_id = Column(Integer, ForeignKey('media.id'))
     authors = relationship('author',
                 secondary=at_article_author,
@@ -95,7 +120,9 @@ class Article(Base):
     positions = relationship('position',
                 secondary=at_article_tag,
                 back_populates='articles')
-
+    sources = relationship('source', 
+                secondary = at_article_source,
+                back_populates='media')
 
 class Link(Base):
     __tablename__ = 'link'
@@ -125,6 +152,10 @@ class Tag(Base):
     authors = relationship('Author',
                 secondary=at_author_tag,
                 back_populates='topics')
+    sources = relationship('Source', 
+                secondary = at_source_tag,
+                back_populates='media')
+
 
 class InferredTag(Base):
     __tablename__ = 'inferred_tag'
@@ -133,9 +164,13 @@ class InferredTag(Base):
     articles = relationship('article',
                 secondary=at_article_inferred_tab,
                 back_populates='inferred_tag')
-    authors = relationship('Author',
+    authors = relationship('author',
                 secondary=at_author_inferred_tab,
                 back_populates='topics_inferred')
+    sources = relationship('source', 
+                secondary = at_source_inferred_tag,
+                back_populates='media')
+
 
 class Position(Base):
     __tablename__ = 'position'
@@ -156,18 +191,45 @@ class Author(Base):
     sex = Column(String(500), nullable=True, comment='assumed gender of the author')
     date_of_brith = Column(Date, nullable=True, comment='assumed date of brith of the author')
     bio = Column(Text, nullable=True, comment='biography')
-    topics = relationship('Tag', 
+    topics = relationship('tag', 
                 secondary = at_author_tag,
                 back_populates='authors')
-    topics_inferred = relationship('InferredTag', 
+    topics_inferred = relationship('inferred_tag', 
                 secondary = at_author_inferred_tab,
                 back_populates='authors')
-    media = relationship('Media', 
+    media = relationship('media', 
                 secondary = at_media_author,
                 back_populates='authors')
     articles = relationship('article',
                 secondary=at_article_author,
                 back_populates='authors')
+    aliases = relationship('Alias')
+
+class Source(Base):
+    __tablename__ = 'source'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(500), nullable=False, comment='name of the source')
+    bio = Column(Text, nullable=True, comment='biography of the source')
+    topics = relationship('tag', 
+                secondary = at_source_tag,
+                back_populates='sources')
+    topics_inferred = relationship('inferred_tag', 
+                secondary = at_source_inferred_tag,
+                back_populates='sources')
+    media = relationship('media', 
+                secondary = at_media_source,
+                back_populates='sources')
+    articles = relationship('article',
+                secondary=at_article_source,
+                back_populates='sources')
+    aliases = relationship('Alias')
+
+class Alias(Base):
+    __tablename__ = 'alias'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    alias = Column(String(500), nullable=False)
+    author_id = Column(Integer, ForeignKey('author.id'), nullable=True)
+    source_id = Column(Integer, ForeignKey('source.id'), nullable=True)
 
 
 if __name__ == '__main__':
