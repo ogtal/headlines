@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 sqlalchemy = "*"
 ipython = "*"
+"newspaper3k" = "*"
+pandas = "*"
+xlrd = "*"
 
 [dev-packages]
 
