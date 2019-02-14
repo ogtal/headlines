@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import create_engine, Column, Table, Integer, String,Float, Date, Text, Numeric, DateTime, ForeignKey, BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -55,10 +56,18 @@ at_article_source = Table('article_source', Base.metadata,
     Column('source_id', Integer, ForeignKey('source.id'))
     )
 
+at_article_state = Table('article_state', Base.metadata,
+    Column('article_id', Integer, ForeignKey('article.id')),
+    Column('state_id', Integer, ForeignKey('state.id'))
+    )
 
 
+class TimestampMixin:
+    modified_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, comment="Tidspunkt for, hvornår observationen sidst er blevet ændret")
+    inserted_at = Column(DateTime, default=datetime.now, comment="Tidspunkt for, hvornår observationen er blevet indsat i databasen")
 
-class Media(Base):
+
+class Media(Base, TimestampMixin):
     __tablename__ = 'media'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, comment='Official name of the news website')
@@ -71,7 +80,7 @@ class Media(Base):
                 secondary = at_media_source,
                 back_populates='media')
 
-class Article(Base):
+class Article(Base, TimestampMixin):
     __tablename__ = 'article'
     id = Column(Integer, primary_key=True, autoincrement=True)
     published = Column(DateTime, nullable=False, comment='Either from article or from first observation')
@@ -102,8 +111,11 @@ class Article(Base):
     sources = relationship('Source', 
                 secondary = at_article_source,
                 back_populates='articles')
+    states = relationship('State', 
+                secondary= at_article_state, 
+                back_populates='articles')
 
-class Link(Base):
+class Link(Base, TimestampMixin):
     __tablename__ = 'link'
     id = Column(Integer, primary_key=True, autoincrement=True)
     url = Column(Text, nullable=False, comment='URLs used in the article')
@@ -111,8 +123,16 @@ class Link(Base):
             secondary=at_article_link,
             back_populates='links')
 
+class State(Base, TimestampMixin):
+    __tablename__ = 'state'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    state = Column(String(100), nullable=False, comment='The state of an article, i.e. downloaded, processed, etc.')
+    state_description = Column(Text, comment='Our description of the state' )
+    articles = relationship('Article',
+                secondary=at_article_state,
+                back_populates='states')
 
-class Graphic(Base):
+class Graphic(Base, TimestampMixin):
     __tablename__ = 'graphic'
     id = Column(Integer, primary_key=True, autoincrement=True)
     url = Column(Text, nullable=False, comment='URL of images, videos, etc. associanted with an article')
@@ -121,7 +141,7 @@ class Graphic(Base):
                 secondary=at_article_graphic,
                 back_populates='graphics') 
 
-class Tag(Base):
+class Tag(Base, TimestampMixin):
     __tablename__ = 'tag'
     id = Column(Integer, primary_key=True, autoincrement=True)
     tag = Column(String(1000), nullable=True, comment='Article tag')
@@ -138,7 +158,7 @@ class Tag(Base):
 
 
 
-class Position(Base):
+class Position(Base, TimestampMixin):
     __tablename__ = 'position'
     id = Column(Integer, primary_key=True, autoincrement=True)
     article_id = Column(Integer, ForeignKey('article.id'))
@@ -151,7 +171,7 @@ class Position(Base):
     pos_y = Column(Numeric, nullable=True, comment='Empty for now.')
 
 
-class Author(Base):
+class Author(Base, TimestampMixin):
     __tablename__ = 'author'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(500), nullable=False, comment='name of the author')
@@ -169,7 +189,7 @@ class Author(Base):
                 back_populates='authors')
     aliases = relationship('Alias')
 
-class Source(Base):
+class Source(Base, TimestampMixin):
     __tablename__ = 'source'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(500), nullable=False, comment='name of the source')
@@ -185,12 +205,18 @@ class Source(Base):
                 back_populates='sources')
     aliases = relationship('Alias')
 
-class Alias(Base):
+class Alias(Base, TimestampMixin):
     __tablename__ = 'alias'
     id = Column(Integer, primary_key=True, autoincrement=True)
     alias = Column(String(500), nullable=False)
     author_id = Column(Integer, ForeignKey('author.id'), nullable=True)
     source_id = Column(Integer, ForeignKey('source.id'), nullable=True)
+
+class Whitelist_Media(Base, TimestampMixin):
+    __tablename__ = 'whitelist_media'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False, comment='Official name of the news website')
+    url = Column(Text, nullable=False, comment='Base url of the news website')
 
 
 if __name__ == '__main__':
