@@ -71,7 +71,6 @@ class Media(Base, TimestampMixin):
     __tablename__ = 'media'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, comment='Official name of the news website')
-    url = Column(Text, nullable=False, comment='Base url of the news website')
     authors = relationship('Author', 
                 secondary = at_media_author,
                 back_populates='media')
@@ -94,6 +93,7 @@ class Article(Base, TimestampMixin):
     has_graphic = Column(BOOLEAN, nullable=False, comment='If true: article has graphics')
     has_tag = Column(BOOLEAN, nullable=False, comment='If true: article has tags')
     has_sources = Column(BOOLEAN, nullable=False, comment='If true: article has sources')
+    raw_html = Column(Text, nullable=True, comment='The html from the link, saved for use in later processing')
     media_id = Column(Integer, ForeignKey('media.id'))
     positions = relationship('Position')
     authors = relationship('Author',
@@ -215,8 +215,14 @@ class Alias(Base, TimestampMixin):
 class Whitelist_Media(Base, TimestampMixin):
     __tablename__ = 'whitelist_media'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False, comment='Official name of the news website')
-    url = Column(Text, nullable=False, comment='Base url of the news website')
+    name = Column(String, comment='Official name of the news website')
+    urls = relationship('Whitelist_Urls')
+
+class Whitelist_Urls(Base, TimestampMixin):
+    __tablename__ = 'whitelist_urls'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    url = Column(Text, comment='Url of the news website')
+    whitelist_media_id = Column(Integer, ForeignKey('whitelist_media.id'))
 
 
 if __name__ == '__main__':
@@ -231,5 +237,7 @@ if __name__ == '__main__':
     Position.__table__,
     Source.__table__,
     Alias.__table__,
+    Whitelist_Media.__table__,
+    Whitelist_Urls.__table__,
     ])
     Base.metadata.create_all(engine)
