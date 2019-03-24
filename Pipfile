@@ -9,6 +9,7 @@ ipython = "*"
 "newspaper3k" = "*"
 pandas = "*"
 xlrd = "*"
+mysqlclient = "*"
 
 [dev-packages]
 
