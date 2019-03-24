@@ -71,6 +71,7 @@ class Media(Base, TimestampMixin):
     __tablename__ = 'media'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, comment='Official name of the news website')
+    urls = relationship('Media_Urls')
     authors = relationship('Author', 
                 secondary = at_media_author,
                 back_populates='media')
@@ -78,6 +79,7 @@ class Media(Base, TimestampMixin):
     sources = relationship('Source', 
                 secondary = at_media_source,
                 back_populates='media')
+    ignored_links = relationship('Ignored_Links')
 
 class Article(Base, TimestampMixin):
     __tablename__ = 'article'
@@ -212,17 +214,24 @@ class Alias(Base, TimestampMixin):
     author_id = Column(Integer, ForeignKey('author.id'), nullable=True)
     source_id = Column(Integer, ForeignKey('source.id'), nullable=True)
 
+class Ignored_Links(Base, TimestampMixin):
+    __tablename__ = 'ignored_links'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    url = Column(String(500), nullable=False)
+    media_id = Column(Integer, ForeignKey('media.id'))
+
 class Whitelist_Media(Base, TimestampMixin):
     __tablename__ = 'whitelist_media'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, comment='Official name of the news website')
-    urls = relationship('Whitelist_Urls')
+    urls = relationship('Media_Urls')
 
-class Whitelist_Urls(Base, TimestampMixin):
-    __tablename__ = 'whitelist_urls'
+class Media_Urls(Base, TimestampMixin):
+    __tablename__ = 'media_urls'
     id = Column(Integer, primary_key=True, autoincrement=True)
     url = Column(Text, comment='Url of the news website')
     whitelist_media_id = Column(Integer, ForeignKey('whitelist_media.id'))
+    media_id = Column(Integer, ForeignKey('media.id'))
 
 
 if __name__ == '__main__':
@@ -237,7 +246,8 @@ if __name__ == '__main__':
     Position.__table__,
     Source.__table__,
     Alias.__table__,
+    Ignored_Links.__table__,
     Whitelist_Media.__table__,
-    Whitelist_Urls.__table__,
+    Media_Urls.__table__,
     ])
     Base.metadata.create_all(engine)
