@@ -1,0 +1,12 @@
+from ogtal_secrets import mysql_stat_url
+
+from sqlalchemy import create_engine
+from sqlalchemy.ext.automap import automap_base
+
+engine = create_engine(mysql_stat_url.format(db="AT_DB_disinfo"), pool_recycle=7200)
+Base = automap_base()
+Base.prepare(engine, reflect=True)
+
+RawPage = Base.classes.disinfo_page_info 
+RawPost = Base.classes.disinfo_post_info 
+RawComment = Base.classes.disinfo_comment_info
