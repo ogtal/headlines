@@ -1,0 +1,12 @@
+state,state_description
+Broken link,Used when the article url is broken
+Paywalled,Used when the article is behind a paywall
+Initial download,Used after performing initial download with newspaper3k
+Download failed,Tells if the initial download failed
+Article parsed,Used after the article is successfully parsed with newspaper3k
+Parsed authors,Used if the authors have been parsed
+Parsed tags,Used if the tags have been parsed
+Parsed sources,Used if the sources have been parsed
+Pending Review,Used when we are unsure of how successful newspaper3k was at parsing the article
+Complete,Used when all operations on an article are complete
+Manually inspected,Used after a manual inspection
